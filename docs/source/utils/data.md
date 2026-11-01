@@ -431,6 +431,11 @@ for batch_ndx, sample in enumerate(loader):
     print(sample.tgt.is_pinned())
 ```
 
+An existing {meth}`pin_memory` method can query
+{func}`torch.accelerator.current_accelerator` if it needs the accelerator type.
+Member tensors can be pinned with {meth}`~torch.Tensor.pin_memory` without
+passing a device argument.
+
 For custom types other than {class}`~torch.Tensor` subclasses, DataLoader also
 supports a {meth}`pin_memory_with_device` method. DataLoader calls this method
 with the selected accelerator's type as a string, such as `"cuda"` or `"xpu"`,

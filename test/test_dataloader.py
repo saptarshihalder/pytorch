@@ -3803,6 +3803,18 @@ class TestCustomPinFn(TestCase):
         self.assertIs(_utils.pin_memory.pin_memory(batch, "cuda"), batch)
         self.assertEqual(batch.device, "cuda")
 
+    def test_custom_device_pin_tensor_subclass(self):
+        class Batch(torch.Tensor):
+            def pin_memory(self):
+                return pinned
+
+            def pin_memory_with_device(self, device):
+                raise AssertionError("device-aware hook should not run for tensors")
+
+        pinned = object()
+        batch = torch.arange(4).as_subclass(Batch)
+        self.assertIs(_utils.pin_memory.pin_memory(batch, "xpu"), pinned)
+
     def test_custom_pin_legacy_signature(self):
         class Batch:
             def __init__(self):
@@ -3852,7 +3864,7 @@ class TestCustomPinFn(TestCase):
         self.assertEqual(list(pinned), list(storage))
         self.assertFalse(caught)
 
-    def test_custom_device_pin_dataloader(self):
+    def test_custom_device_pin_dataloader_cpu_dispatch(self):
         with (
             mock.patch.object(torch.accelerator, "is_available", return_value=True),
             mock.patch.object(
